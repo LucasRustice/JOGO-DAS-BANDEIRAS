@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio das Bandeiras 🇧🇷🇺🇸🇫🇷🇩🇪</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(to right, #2c3e50, #4ca1af);
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            background: #34495e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 500px;
+            transition: transform 0.3s;
+        }
+
+        .container:hover {
+            transform: scale(1.02);
+        }
+
+        img {
+            width: 100%;
+            height: auto;
+            max-width: 300px;
+            border-radius: 10px;
+            margin: 20px 0;
+            transition: transform 0.3s;
+        }
+
+        img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .button:hover {
+            background-color: #2980b9;
+            transform: scale(1.05);
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #e74c3c;
+        }
+
+        .score {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            font-size: 20px;
+        }
+
+        .score-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #3498db;
+            color: white;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .score-button.correct {
+            background-color: #2ecc71;
+        }
+
+        .score-button.incorrect {
+            background-color: #e74c3c;
+        }
+
+        .timer {
+            font-size: 20px;
+            color: #2ecc71;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="presentation">
+        <h1>🇧🇷 Desafio das Bandeiras 🇺🇸🇫🇷🇩🇪</h1>
+        <p>Bem-vindo ao Desafio das Bandeiras! Neste jogo, você terá que adivinhar a bandeira de cada país exibido. Aqui estão as regras:</p>
+        <ul>
+            <li>Você ganhará se acertar 20 bandeiras.</li>
+            <li>Você perderá se errar 5 bandeiras ou se o tempo acabar.</li>
+        </ul>
+        <button class="button" onclick="startGame()">Começar Jogo</button>
+    </div>
+
+    <div class="container" id="game" style="display: none;">
+        <h1>🇬🇧 Desafio das Bandeiras 🇨🇦</h1>
+        <div class="score">
+            <div class="score-button correct" id="correct-score">🇮🇹 Acertos: 0</div>
+            <div class="score-button incorrect" id="incorrect-score">🇪🇸 Erros: 0</div>
+        </div>
+        <div class="timer" id="timer">🇯🇵 01:00</div>
+        <img id="flag" src="" alt="Bandeira">
+        <div id="options"></div>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let timer;
+        let timeLeft = 60; // 1 minuto em segundos
+        let usedQuestions = [];
+
+        const questions = [
+            { flag: "https://flagcdn.com/w320/br.png", answer: "Brasil" },
+            { flag: "https://flagcdn.com/w320/us.png", answer: "Estados Unidos" },
+            { flag: "https://flagcdn.com/w320/fr.png", answer: "França" },
+            { flag: "https://flagcdn.com/w320/de.png", answer: "Alemanha" },
+            { flag: "https://flagcdn.com/w320/it.png", answer: "Itália" },
+            { flag: "https://flagcdn.com/w320/ar.png", answer: "Argentina" },
+            { flag: "https://flagcdn.com/w320/ca.png", answer: "Canadá" },
+            { flag: "https://flagcdn.com/w320/es.png", answer: "Espanha" },
+            { flag: "https://flagcdn.com/w320/gb.png", answer: "Reino Unido" },
+            { flag: "https://flagcdn.com/w320/au.png", answer: "Austrália" },
+            { flag: "https://flagcdn.com/w320/jp.png", answer: "Japão" },
+            { flag: "https://flagcdn.com/w320/ru.png", answer: "Rússia" },
+            { flag: "https://flagcdn.com/w320/in.png", answer: "Índia" },
+            { flag: "https://flagcdn.com/w320/cn.png", answer: "China" },
+            { flag: "https://flagcdn.com/w320/za.png", answer: "África do Sul" },
+            { flag: "https://flagcdn.com/w320/mx.png", answer: "México" },
+            { flag: "https://flagcdn.com/w320/kr.png", answer: "Coreia do Sul" },
+            { flag: "https://flagcdn.com/w320/ng.png", answer: "Nigéria" },
+            { flag: "https://flagcdn.com/w320/eg.png", answer: "Egito" },
+            { flag: "https://flagcdn.com/w320/sa.png", answer: "Arábia Saudita" },
+            { flag: "https://flagcdn.com/w320/tr.png", answer: "Turquia" },
+            { flag: "https://flagcdn.com/w320/id.png", answer: "Indonésia" },
+            { flag: "https://flagcdn.com/w320/nl.png", answer: "Países Baixos" },
+            { flag: "https://flagcdn.com/w320/gr.png", answer: "Grécia" },
+            { flag: "https://flagcdn.com/w320/se.png", answer: "Suécia" },
+            { flag: "https://flagcdn.com/w320/no.png", answer: "Noruega" },
+            { flag: "https://flagcdn.com/w320/ie.png", answer: "Irlanda" },
+            { flag: "https://flagcdn.com/w320/ch.png", answer: "Suíça" },
+            { flag: "https://flagcdn.com/w320/nz.png", answer: "Nova Zelândia" },
+            { flag: "https://flagcdn.com/w320/pt.png", answer: "Portugal" },
+            { flag: "https://flagcdn.com/w320/fi.png", answer: "Finlândia" },
+            { flag: "https://flagcdn.com/w320/dk.png", answer: "Dinamarca" },
+            { flag: "https://flagcdn.com/w320/at.png", answer: "Áustria" },
+            { flag: "https://flagcdn.com/w320/be.png", answer: "Bélgica" },
+            { flag: "https://flagcdn.com/w320/pl.png", answer: "Polônia" },
+            { flag: "https://flagcdn.com/w320/ch.png", answer: "Suíça" },
+            { flag: "https://flagcdn.com/w320/ua.png", answer: "Ucrânia" },
+            { flag: "https://flagcdn.com/w320/ro.png", answer: "Romênia" },
+            { flag: "https://flagcdn.com/w320/hu.png", answer: "Hungria" },
+            { flag: "https://flagcdn.com/w320/cz.png", answer: "República Tcheca" },
+            { flag: "https://flagcdn.com/w320/bg.png", answer: "Bulgária" },
+            { flag: "https://flagcdn.com/w320/il.png", answer: "Israel" },
+            { flag: "https://flagcdn.com/w320/ir.png", answer: "Irã" },
+            { flag: "https://flagcdn.com/w320/iq.png", answer: "Iraque" },
+            { flag: "https://flagcdn.com/w320/ae.png", answer: "Emirados Árabes Unidos" },
+            { flag: "https://flagcdn.com/w320/qa.png", answer: "Catar" },
+            { flag: "https://flagcdn.com/w320/om.png", answer: "Omã" },
+            { flag: "https://flagcdn.com/w320/jo.png", answer: "Jordânia" },
+            { flag: "https://flagcdn.com/w320/ma.png", answer: "Marrocos" },
+            { flag: "https://flagcdn.com/w320/dz.png", answer: "Argélia" },
+            { flag: "https://flagcdn.com/w320/ke.png", answer: "Quênia" },
+            { flag: "https://flagcdn.com/w320/et.png", answer: "Etiópia" },
+            { flag: "https://flagcdn.com/w320/gh.png", answer: "Gana" },
+            { flag: "https://flagcdn.com/w320/ug.png", answer: "Uganda" },
+            { flag: "https://flagcdn.com/w320/tn.png", answer: "Tunísia" },
+            { flag: "https://flagcdn.com/w320/ly.png", answer: "Líbia" },
+        ];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function loadQuestion() {
+            if (correctAnswers >= 20 || wrongAnswers >= 5) {
+                endGame(correctAnswers >= 20);
+                return;
+            }
+
+            const flagElement = document.getElementById("flag");
+            const optionsElement = document.getElementById("options");
+            const messageElement = document.getElementById("message");
+
+            messageElement.textContent = "";
+            updateScores();
+
+            // Filtra perguntas que ainda não foram usadas
+            const availableQuestions = questions.filter((_, index) => !usedQuestions.includes(index));
+
+            if (availableQuestions.length === 0) {
+                messageElement.innerHTML = `<span style="color: #e74c3c;">🇦🇷 Não há mais perguntas disponíveis!</span>`;
+                return;
+            }
+
+            shuffleArray(availableQuestions);
+            const questionIndex = questions.indexOf(availableQuestions[0]);
+            usedQuestions.push(questionIndex);
+
+            const question = questions[questionIndex];
+
+            flagElement.src = question.flag;
+            optionsElement.innerHTML = "";
+
+            const options = shuffleArray([...questions]);
+            const correctOption = options.find(option => option.answer === question.answer);
+            optionsElement.appendChild(createOptionButton(correctOption.answer, true));
+
+            let incorrectOptions = options.filter(option => option.answer !== question.answer).slice(0, 3);
+            incorrectOptions.forEach(option => {
+                optionsElement.appendChild(createOptionButton(option.answer, false));
+            });
+
+            shuffleArray([...optionsElement.children]).forEach(child => optionsElement.appendChild(child));
+
+            startTimer();
+        }
+
+        function createOptionButton(optionText, isCorrect) {
+            const button = document.createElement("button");
+            button.className = "button";
+            button.textContent = optionText;
+            button.onclick = () => checkAnswer(isCorrect, button);
+            return button;
+        }
+
+        function checkAnswer(isCorrect, button) {
+            const messageElement = document.getElementById("message");
+            const correctAnswer = questions.find(q => q.flag === document.getElementById("flag").src).answer;
+            const buttons = document.querySelectorAll("#options .button");
+
+            buttons.forEach(btn => {
+                if (btn.textContent === correctAnswer) {
+                    btn.style.backgroundColor = '#2ecc71'; // Verde para a resposta correta
+                }
+                if (!isCorrect && btn === button) {
+                    btn.style.backgroundColor = '#e74c3c'; // Vermelho para a resposta errada
+                }
+            });
+
+            if (isCorrect) {
+                messageElement.innerHTML = `<span style="color: #2ecc71;">${getFlagEmoji(correctAnswer)} Correto!</span>`;
+                correctAnswers++;
+            } else {
+                messageElement.innerHTML = `<span style="color: #e74c3c;">${getFlagEmoji(correctAnswer)} Errado!</span>`;
+                wrongAnswers++;
+            }
+            
+            clearInterval(timer);
+            setTimeout(loadQuestion, 1000);
+        }
+
+        function getFlagEmoji(country) {
+            const countryFlags = {
+                "Brasil": "🇧🇷",
+                "Estados Unidos": "🇺🇸",
+                "França": "🇫🇷",
+                "Alemanha": "🇩🇪",
+                "Itália": "🇮🇹",
+                "Argentina": "🇦🇷",
+                "Canadá": "🇨🇦",
+                "Espanha": "🇪🇸",
+                "Reino Unido": "🇬🇧",
+                "Austrália": "🇦🇺",
+                "Japão": "🇯🇵",
+                "Rússia": "🇷🇺",
+                "Índia": "🇮🇳",
+                "China": "🇨🇳",
+                "África do Sul": "🇿🇦",
+                "México": "🇲🇽",
+                "Coreia do Sul": "🇰🇷",
+                "Nigéria": "🇳🇬",
+                "Egito": "🇪🇬",
+                "Arábia Saudita": "🇸🇦",
+                "Turquia": "🇹🇷",
+                "Indonésia": "🇮🇩",
+                "Países Baixos": "🇳🇱",
+                "Grécia": "🇬🇷",
+                "Suécia": "🇸🇪",
+                "Noruega": "🇳🇴",
+                "Irlanda": "🇮🇪",
+                "Suíça": "🇨🇭",
+                "Nova Zelândia": "🇳🇿",
+                "Portugal": "🇵🇹",
+                "Finlândia": "🇫🇮",
+                "Dinamarca": "🇩🇰",
+                "Áustria": "🇦🇹",
+                "Bélgica": "🇧🇪",
+                "Polônia": "🇵🇱",
+                "Ucrânia": "🇺🇦",
+                "Romênia": "🇷🇴",
+                "Hungria": "🇭🇺",
+                "República Tcheca": "🇨🇿",
+                "Bulgária": "🇧🇬",
+                "Israel": "🇮🇱",
+                "Irã": "🇮🇷",
+                "Iraque": "🇮🇶",
+                "Emirados Árabes Unidos": "🇦🇪",
+                "Catar": "🇶🇦",
+                "Omã": "🇴🇲",
+                "Jordânia": "🇯🇴",
+                "Marrocos": "🇲🇦",
+                "Argélia": "🇩🇿",
+                "Quênia": "🇰🇪",
+                "Etiópia": "🇪🇹",
+                "Gana": "🇬🇭",
+                "Uganda": "🇺🇬",
+                "Tunísia": "🇹🇳",
+                "Líbia": "🇱🇾"
+            };
+            return countryFlags[country] || "🏳️";
+        }
+
+        function endGame(won) {
+            const messageElement = document.getElementById("message");
+            const optionsElement = document.getElementById("options");
+
+            optionsElement.innerHTML = ''; // Limpar opções
+            clearInterval(timer); // Para o cronômetro
+
+            if (won) {
+                messageElement.innerHTML = `🇰🇷 Parabéns! Você acertou 20 bandeiras!`;
+            } else {
+                messageElement.innerHTML = `🇨🇳 Você perdeu!`;
+            }
+
+            const restartButton = document.createElement("button");
+            restartButton.className = "button";
+            restartButton.textContent = "Jogar Novamente";
+            restartButton.onclick = restartGame;
+            optionsElement.appendChild(restartButton);
+        }
+
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 60; // Reinicia o tempo para cada questão
+            const timerElement = document.getElementById("timer");
+            timer = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.innerHTML = `🇸🇦 ${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    wrongAnswers++;
+                    messageElement.innerHTML = `<span style="color: #e74c3c;">🇹🇷 Tempo esgotado!</span>`;
+                    setTimeout(loadQuestion, 1000);
+                }
+            }, 1000);
+        }
+
+        function updateScores() {
+            const correctScoreElement = document.getElementById("correct-score");
+            const incorrectScoreElement = document.getElementById("incorrect-score");
+
+            correctScoreElement.innerHTML = `🇮🇹 Acertos: ${correctAnswers}`;
+            incorrectScoreElement.innerHTML = `🇪🇸 Erros: ${wrongAnswers}`;
+        }
+
+        function restartGame() {
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            usedQuestions = [];
+            document.getElementById("message").innerHTML = '';
+            shuffleArray(questions); // Embaralha as perguntas para cada novo jogo
+            loadQuestion();
+        }
+
+        function startGame() {
+            document.getElementById("presentation").style.display = "none"; // Esconde a apresentação
+            document.getElementById("game").style.display = "block"; // Mostra o jogo
+            shuffleArray(questions); // Embaralha as perguntas para cada novo jogo
+            loadQuestion();
+        }
+
+        // Esconde o jogo inicialmente
+        document.getElementById("game").style.display = "none";
+    </script>
+</body>
+</html>
